@@ -1,7 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { useState } from 'react'
+import { HUDCard } from '@/components/HUDCard'
+import { PenTool, Activity, Zap, Droplets, BookOpen, Moon, CreditCard, ShoppingBag, Car, Film, Coffee, Utensils, History, TrendingDown, Flame, Award } from 'lucide-react'
 
 export function LogInterface() {
   const [mode, setMode] = useState<'habit' | 'expense'>('habit')
@@ -10,232 +11,206 @@ export function LogInterface() {
   const [category, setCategory] = useState('')
 
   const habits = [
-    { id: 'meditation', name: 'Morning Meditation', icon: '🧘', color: 'from-emerald-400 to-teal-500', streak: 12 },
-    { id: 'exercise', name: 'Exercise', icon: '💪', color: 'from-blue-400 to-indigo-500', streak: 8 },
-    { id: 'reading', name: 'Reading', icon: '📚', color: 'from-purple-400 to-pink-500', streak: 15 },
-    { id: 'water', name: 'Drink Water', icon: '💧', color: 'from-cyan-400 to-blue-500', streak: 5 },
-    { id: 'journal', name: 'Journaling', icon: '✍️', color: 'from-orange-400 to-red-500', streak: 7 },
-    { id: 'sleep', name: 'Early Sleep', icon: '😴', color: 'from-indigo-400 to-purple-500', streak: 3 }
+    { id: 'meditation', name: 'Meditation', icon: Activity, streak: 12, lastDone: 'Today, 6:30 AM' },
+    { id: 'exercise', name: 'Exercise', icon: Zap, streak: 8, lastDone: 'Yesterday' },
+    { id: 'reading', name: 'Reading', icon: BookOpen, streak: 15, lastDone: 'Today, 9:00 PM' },
+    { id: 'water', name: 'Hydration', icon: Droplets, streak: 5, lastDone: 'Today, 3:00 PM' },
+    { id: 'sleep', name: 'Early Sleep', icon: Moon, streak: 3, lastDone: '2 days ago' }
   ]
 
   const expenseCategories = [
-    { id: 'food', name: 'Food & Dining', icon: '🍽️', color: 'from-emerald-400 to-teal-500' },
-    { id: 'transport', name: 'Transport', icon: '🚗', color: 'from-blue-400 to-indigo-500' },
-    { id: 'shopping', name: 'Shopping', icon: '🛍️', color: 'from-purple-400 to-pink-500' },
-    { id: 'health', name: 'Health & Fitness', icon: '🏥', color: 'from-cyan-400 to-blue-500' },
-    { id: 'entertainment', name: 'Entertainment', icon: '🎬', color: 'from-orange-400 to-red-500' },
-    { id: 'education', name: 'Education', icon: '📚', color: 'from-indigo-400 to-purple-500' }
+    { id: 'food', name: 'Food & Dining', icon: Utensils, avg: '₹450/day' },
+    { id: 'transport', name: 'Transport', icon: Car, avg: '₹200/day' },
+    { id: 'shopping', name: 'Shopping', icon: ShoppingBag, avg: '₹1200/week' },
+    { id: 'entertainment', name: 'Entertainment', icon: Film, avg: '₹800/week' },
+    { id: 'coffee', name: 'Coffee', icon: Coffee, avg: '₹150/day' },
+    { id: 'other', name: 'Other', icon: CreditCard, avg: 'Varies' }
+  ]
+
+  const recentLogs = [
+    { type: 'habit', name: 'Meditation', time: '6:30 AM', icon: Activity },
+    { type: 'expense', name: 'Coffee - ₹180', time: '9:00 AM', icon: Coffee },
+    { type: 'habit', name: 'Reading', time: '9:00 PM', icon: BookOpen },
+  ]
+
+  const quickStats = [
+    { label: 'Habits Today', value: '3/5', icon: Flame, color: 'text-emerald-400' },
+    { label: 'Spent Today', value: '₹850', icon: TrendingDown, color: 'text-cyan-400' },
+    { label: 'Best Streak', value: '15 days', icon: Award, color: 'text-amber-400' },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
-      
-      {/* Animated Background */}
-      <div className="fixed inset-0 opacity-10">
-        <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-emerald-500 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-blue-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-      </div>
+    <div className="min-h-screen bg-[#050505] text-slate-200 font-sans selection:bg-cyan-500/30 overflow-x-hidden pt-8 pb-24">
 
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-6 py-16">
-        <div className="w-full max-w-2xl">
-          
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
-            <h1 className="text-4xl font-light mb-4 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-              Smart Logging
-            </h1>
-            <p className="text-slate-400 text-lg">AI-powered habit and expense tracking</p>
-          </motion.div>
+      {/* Tech Background Grid */}
+      <div className="fixed inset-0 pointer-events-none opacity-20"
+        style={{ backgroundImage: 'linear-gradient(#1e293b 1px, transparent 1px), linear-gradient(90deg, #1e293b 1px, transparent 1px)', backgroundSize: '40px 40px' }}
+      />
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_0%,#050505_100%)]" />
 
-          {/* Mode Selection */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex justify-center mb-12"
-          >
-            <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-2 flex">
+      <div className="relative z-10 max-w-7xl mx-auto px-6">
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-10 pb-6 border-b border-slate-800">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-cyan-950/30 border border-cyan-500/30 rounded-lg">
+              <PenTool className="text-cyan-400" size={28} />
+            </div>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Quick Log</h1>
+              <p className="text-lg text-slate-400">Track your habits and expenses in one place</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {quickStats.map((stat) => (
+            <HUDCard key={stat.label} className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-400 mb-1">{stat.label}</p>
+                  <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                </div>
+                <stat.icon size={32} className={`${stat.color} opacity-50`} />
+              </div>
+            </HUDCard>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* Main Input Area */}
+          <div className="lg:col-span-8">
+            {/* Mode Switcher */}
+            <div className="flex gap-3 mb-6">
               {['habit', 'expense'].map((type) => (
                 <button
                   key={type}
                   onClick={() => setMode(type as any)}
-                  className={`px-8 py-4 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    mode === type 
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30' 
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  className={`flex-1 py-5 px-6 text-xl font-semibold rounded-xl transition-all ${mode === type
+                      ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/20'
+                      : 'bg-slate-900/50 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                    }`}
                 >
-                  {type === 'habit' ? '✨ Log Habit' : '💰 Log Expense'}
+                  {type === 'habit' ? '✓ Log Habit' : '₹ Log Expense'}
                 </button>
               ))}
             </div>
-          </motion.div>
 
-          {/* Content */}
-          <motion.div
-            key={mode}
-            initial={{ opacity: 0, x: mode === 'habit' ? -20 : 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
-            className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8"
-          >
-            
-            {mode === 'habit' ? (
-              <div>
-                <h2 className="text-2xl font-light mb-8 text-center text-slate-200">
-                  Which habit did you complete?
-                </h2>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                  {habits.map((habit, index) => (
-                    <motion.button
-                      key={habit.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.3 + index * 0.05 }}
-                      onClick={() => setSelectedHabit(habit.id)}
-                      className={`p-6 rounded-2xl border transition-all duration-300 ${
-                        selectedHabit === habit.id
-                          ? 'border-emerald-500 bg-emerald-500/10 scale-105'
-                          : 'border-slate-600/50 bg-slate-700/30 hover:border-slate-500/50 hover:bg-slate-700/50'
-                      }`}
-                    >
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${habit.color} flex items-center justify-center text-3xl mx-auto mb-4`}>
-                        {habit.icon}
-                      </div>
-                      <h3 className="font-medium text-slate-200 mb-2">{habit.name}</h3>
-                      <p className="text-sm text-slate-400">{habit.streak} day streak</p>
-                      
-                      {selectedHabit === habit.id && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="mt-4 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center mx-auto"
-                        >
-                          <span className="text-white text-sm">✓</span>
-                        </motion.div>
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
+            <HUDCard className="p-8">
+              {mode === 'habit' ? (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-6">Which habit did you complete?</h2>
 
-                {selectedHabit && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center"
-                  >
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-12 py-4 rounded-2xl font-medium shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all duration-300"
-                    >
-                      Complete Habit
-                    </motion.button>
-                  </motion.div>
-                )}
-              </div>
-            ) : (
-              <div>
-                <h2 className="text-2xl font-light mb-8 text-center text-slate-200">
-                  Log your expense
-                </h2>
-                
-                {/* Amount Input */}
-                <div className="mb-8">
-                  <motion.input
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    type="text"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="$0.00"
-                    className="w-full text-6xl font-light text-center bg-transparent border-none outline-none text-white placeholder-slate-500 mb-4"
-                  />
-                  <div className="w-24 h-px bg-gradient-to-r from-transparent via-slate-500 to-transparent mx-auto" />
-                </div>
-
-                {/* Categories */}
-                {amount && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <h3 className="text-lg font-medium text-slate-300 mb-6 text-center">
-                      Select category
-                    </h3>
-                    
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
-                      {expenseCategories.map((cat, index) => (
-                        <motion.button
-                          key={cat.id}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.6 + index * 0.05 }}
-                          onClick={() => setCategory(cat.id)}
-                          className={`p-4 rounded-2xl border transition-all duration-300 ${
-                            category === cat.id
-                              ? 'border-emerald-500 bg-emerald-500/10 scale-105'
-                              : 'border-slate-600/50 bg-slate-700/30 hover:border-slate-500/50'
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    {habits.map((habit) => (
+                      <button
+                        key={habit.id}
+                        onClick={() => setSelectedHabit(habit.id)}
+                        className={`flex items-center gap-4 p-6 border rounded-xl transition-all ${selectedHabit === habit.id
+                            ? 'border-emerald-500 bg-emerald-950/20 scale-[1.02]'
+                            : 'border-slate-800 bg-slate-900/30 hover:border-slate-700 hover:bg-slate-900/50'
                           }`}
-                        >
-                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-2xl mx-auto mb-3`}>
-                            {cat.icon}
-                          </div>
-                          <p className="text-sm font-medium text-slate-300">{cat.name}</p>
-                        </motion.button>
-                      ))}
-                    </div>
-
-                    {category && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-center"
                       >
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-12 py-4 rounded-2xl font-medium shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transition-all duration-300"
-                        >
-                          Save Expense
-                        </motion.button>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                )}
-              </div>
-            )}
-          </motion.div>
+                        <div className={`p-3 rounded-lg ${selectedHabit === habit.id ? 'bg-emerald-500' : 'bg-slate-800'}`}>
+                          <habit.icon size={28} className="text-white" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <div className={`text-lg font-semibold ${selectedHabit === habit.id ? 'text-emerald-400' : 'text-white'}`}>
+                            {habit.name}
+                          </div>
+                          <div className="text-sm text-slate-500">{habit.streak} day streak</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
 
-          {/* AI Suggestion */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="mt-8 bg-slate-800/30 backdrop-blur-xl border border-slate-700/30 rounded-2xl p-6"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center text-xl">
-                🤖
+                  {selectedHabit && (
+                    <button className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white text-xl font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20">
+                      Complete Habit ✓
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-6">Log your expense</h2>
+
+                  {/* Amount Input */}
+                  <div className="mb-8">
+                    <label className="block text-base text-slate-400 mb-3">Amount (₹)</label>
+                    <input
+                      type="text"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0"
+                      className="w-full bg-slate-900/50 border-2 border-slate-800 rounded-xl text-5xl font-bold text-white py-6 px-8 focus:border-cyan-500 focus:outline-none transition-colors text-center"
+                    />
+                  </div>
+
+                  {amount && (
+                    <>
+                      <h3 className="text-lg font-semibold text-slate-300 mb-4">Select category</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+                        {expenseCategories.map((cat) => (
+                          <button
+                            key={cat.id}
+                            onClick={() => setCategory(cat.id)}
+                            className={`flex flex-col items-center gap-3 p-5 border rounded-xl transition-all ${category === cat.id
+                                ? 'border-cyan-500 bg-cyan-950/20 text-cyan-400 scale-[1.02]'
+                                : 'border-slate-800 bg-slate-900/30 text-slate-400 hover:border-slate-700'
+                              }`}
+                          >
+                            <cat.icon size={28} />
+                            <div className="text-center">
+                              <span className="text-base font-medium block">{cat.name}</span>
+                              <span className="text-xs text-slate-500">{cat.avg}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {category && (
+                        <button className="w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white text-xl font-bold rounded-xl transition-colors shadow-lg shadow-cyan-500/20">
+                          Save Expense
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </HUDCard>
+          </div>
+
+          {/* Sidebar - Recent Activity */}
+          <div className="lg:col-span-4">
+            <HUDCard title="Recent Activity" className="p-6 h-full">
+              <div className="flex items-center gap-2 mb-6 text-slate-400">
+                <History size={18} />
+                <span className="text-base">Today's Log</span>
               </div>
-              <div>
-                <h4 className="font-medium text-slate-200 mb-1">AI Suggestion</h4>
-                <p className="text-slate-400 text-sm">
-                  {mode === 'habit' 
-                    ? "Your meditation streak is strong! Consider adding a 5-minute breathing exercise."
-                    : "You're 23% under budget this week. Great job on mindful spending!"
-                  }
+
+              <div className="space-y-4">
+                {recentLogs.map((log, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 bg-slate-900/50 border border-slate-800 rounded-lg">
+                    <div className={`p-2 rounded-lg ${log.type === 'habit' ? 'bg-emerald-500/20' : 'bg-cyan-500/20'}`}>
+                      <log.icon size={20} className={log.type === 'habit' ? 'text-emerald-400' : 'text-cyan-400'} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-base font-medium text-white">{log.name}</div>
+                      <div className="text-sm text-slate-500">{log.time}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 p-4 bg-slate-900/30 border border-slate-800 rounded-lg">
+                <p className="text-sm text-slate-400 text-center">
+                  💡 <span className="text-cyan-400">Tip:</span> Logging consistently helps build better habits!
                 </p>
               </div>
-            </div>
-          </motion.div>
+            </HUDCard>
+          </div>
         </div>
       </div>
     </div>

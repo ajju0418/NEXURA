@@ -9,16 +9,18 @@
     "export": "next build && next export"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.0.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^10.16.0",
+    "lucide-react": "^0.562.0",
     "next": "^15.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "framer-motion": "^10.16.0",
+    "recharts": "^3.6.0",
     "rxdb": "^15.0.0",
     "rxjs": "^7.8.0",
-    "@radix-ui/react-slot": "^1.0.0",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0"
+    "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
