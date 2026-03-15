@@ -30,8 +30,20 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
-    } catch (err) {
-      setError('ACCESS DENIED - INVALID CREDENTIALS')
+      // Explicitly redirect to dashboard after successful login
+      router.push('/dashboard')
+    } catch (err: any) {
+      // Provide user-friendly error messages
+      const errorMessage = err.message || ''
+      if (errorMessage.toLowerCase().includes('invalid') || errorMessage.toLowerCase().includes('credentials')) {
+        setError('INVALID CREDENTIALS - CHECK EMAIL AND PASSWORD')
+      } else if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('fetch')) {
+        setError('NETWORK ERROR - BACKEND MAY BE OFFLINE')
+      } else if (errorMessage.toLowerCase().includes('409') || errorMessage.toLowerCase().includes('conflict')) {
+        setError('ACCOUNT CONFLICT - TRY RESETTING PASSWORD')
+      } else {
+        setError('ACCESS DENIED - ' + errorMessage.toUpperCase())
+      }
     }
   }
 
@@ -123,7 +135,7 @@ export default function LoginPage() {
                         ? 'border-cyan-400 shadow-lg shadow-cyan-400/20'
                         : 'border-slate-700 hover:border-slate-600'
                         }`}
-                      placeholder="nexura123"
+                      placeholder="Nexura@123"
                       required
                     />
                     <button
@@ -168,7 +180,7 @@ export default function LoginPage() {
                     <span className="font-bold">DEMO ACCESS</span>
                   </div>
                   <div>ID: admin@nexura.com</div>
-                  <div>KEY: nexura123</div>
+                  <div>KEY: Nexura@123</div>
                 </div>
               </div>
 

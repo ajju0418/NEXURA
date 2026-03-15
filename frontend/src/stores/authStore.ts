@@ -5,6 +5,14 @@ interface User {
   id: string
   email: string
   name: string
+  userId?: string
+}
+
+interface SignupData {
+  email: string
+  password: string
+  name: string
+  [key: string]: any
 }
 
 interface AuthState {
@@ -12,7 +20,7 @@ interface AuthState {
   isLoading: boolean
   error: string | null
   login: (email: string, password: string) => Promise<void>
-  signup: (email: string, password: string, name: string) => Promise<void>
+  signup: (signupData: SignupData) => Promise<void>
   logout: () => Promise<void>
   checkAuth: () => Promise<void>
   clearError: () => void
@@ -34,10 +42,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  signup: async (email: string, password: string, name: string) => {
+  signup: async (signupData: SignupData) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await apiService.signup(email, password, name)
+      const response = await apiService.signup(signupData)
       set({ user: response.user, isLoading: false })
     } catch (error: any) {
       set({ isLoading: false, error: error.message })

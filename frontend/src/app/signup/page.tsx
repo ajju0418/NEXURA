@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { HUDCard } from '@/components/HUDCard'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
 import {
   User, Mail, Lock, Target, Brain, Zap, Heart,
   DollarSign, Clock, Coffee, Moon, Book, Activity,
   ChevronRight, ChevronLeft, CheckCircle2, ArrowRight
 } from 'lucide-react'
+import { useAuthStore } from '@/stores/authStore'
 
 interface UserProfile {
   name: string
@@ -70,7 +72,9 @@ export default function SignupPage() {
     budget: 15000, wakeTime: '07:00', bedTime: '23:00', aiPersonality: 'supportive'
   })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const router = useRouter()
+  const { signup } = useAuthStore()
 
   const updateProfile = (updates: Partial<UserProfile>) => {
     setProfile(prev => ({ ...prev, ...updates }))
@@ -88,14 +92,39 @@ export default function SignupPage() {
     }
   }
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     setLoading(true)
-    setTimeout(() => {
-      localStorage.setItem('userProfile', JSON.stringify(profile))
-      localStorage.setItem('isAuthenticated', 'true')
-      localStorage.setItem('user', JSON.stringify({ email: profile.email, name: profile.name }))
+    setError('')
+    try {
+      // Call the backend signup API with the correct format
+      await signup({
+        name: profile.name,
+        email: profile.email,
+        password: profile.password,
+        age: profile.age,
+        onboarding: {
+          lifeAreas: profile.lifeAreas,
+          primaryGoals: profile.primaryGoals,
+          currentHabits: profile.currentHabits,
+          budget: profile.budget,
+          wakeTime: profile.wakeTime,
+          bedTime: profile.bedTime,
+        }
+      })
+
+      // On success, redirect to dashboard
       router.push('/dashboard')
-    }, 1500)
+    } catch (err: any) {
+      setLoading(false)
+      const errorMessage = err.message || 'Failed to create account'
+      if (errorMessage.toLowerCase().includes('already exists') || errorMessage.toLowerCase().includes('duplicate')) {
+        setError('EMAIL ALREADY EXISTS - TRY LOGGING IN')
+      } else if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('fetch')) {
+        setError('NETWORK ERROR - BACKEND MAY BE OFFLINE')
+      } else {
+        setError('REGISTRATION FAILED - ' + errorMessage.toUpperCase())
+      }
+    }
   }
 
   const renderStep = () => {
@@ -118,6 +147,17 @@ export default function SignupPage() {
               <h2 className="text-2xl font-bold text-white mb-2">Create Your Profile</h2>
               <p className="text-slate-400">Let's get started with your basic information</p>
             </div>
+
+            {/* Error Display */}
+            {error && (
+              <div className="p-4 bg-red-950/50 border border-red-500/30 rounded-xl text-red-400 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  {error}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-4">
               <div>
                 <label className="text-sm text-slate-400 mb-2 block">Full Name</label>
@@ -466,6 +506,17 @@ export default function SignupPage() {
                 <ChevronRight size={16} />
               </button>
             )}
+          </div>
+
+          {/* Login Link */}
+          <div className="mt-6 text-center">
+            <span className="text-slate-500 text-sm">Already have an account? </span>
+            <Link
+              href="/login"
+              className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors text-sm"
+            >
+              Sign In
+            </Link>
           </div>
         </div>
       </div>

@@ -2,21 +2,27 @@
 
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts'
 
-const data = [
-    { subject: 'Wellness', A: 87, fullMark: 100 },
-    { subject: 'Productivity', A: 73, fullMark: 100 },
-    { subject: 'Finance', A: 91, fullMark: 100 },
-    { subject: 'Sleep', A: 65, fullMark: 100 },
-    { subject: 'Focus', A: 80, fullMark: 100 },
+const DEFAULT_DATA = [
+    { subject: 'Wellness', A: 50, fullMark: 100 },
+    { subject: 'Productivity', A: 50, fullMark: 100 },
+    { subject: 'Finance', A: 50, fullMark: 100 },
+    { subject: 'Sleep', A: 50, fullMark: 100 },
+    { subject: 'Focus', A: 50, fullMark: 100 },
     { subject: 'Social', A: 50, fullMark: 100 },
 ]
 
-export function PerformanceRadar() {
+interface PerformanceRadarProps {
+    data?: Array<{ subject: string; A: number }>
+}
+
+export function PerformanceRadar({ data }: PerformanceRadarProps) {
+    const chartData = (data || DEFAULT_DATA).map(d => ({ ...d, fullMark: 100 }))
+
     return (
         <div className="w-full h-[380px] relative">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
             <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="85%" data={data}>
+                <RadarChart cx="50%" cy="50%" outerRadius="85%" data={chartData}>
                     <PolarGrid stroke="#334155" strokeDasharray="3 3" />
                     <PolarAngleAxis
                         dataKey="subject"

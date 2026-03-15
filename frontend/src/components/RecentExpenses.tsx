@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Coffee, ShoppingBag, Droplet, Car, Home, AlertCircle } from 'lucide-react'
+import { Coffee, ShoppingBag, Car, Film, Utensils, CreditCard, AlertCircle } from 'lucide-react'
 import { useExpensesStore } from '../stores/expensesStore'
 
 export function RecentExpenses() {
@@ -14,18 +14,36 @@ export function RecentExpenses() {
 
     const getIcon = (category: string) => {
         switch (category.toLowerCase()) {
-            case 'food': return Coffee
+            case 'food': return Utensils
             case 'transport': return Car
-            case 'health': return Droplet
-            case 'home': return Home
-            default: return ShoppingBag
+            case 'coffee': return Coffee
+            case 'shopping': return ShoppingBag
+            case 'entertainment': return Film
+            default: return CreditCard
         }
     }
 
-    const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0)
+    const getCategoryColor = (category: string) => {
+        switch (category.toLowerCase()) {
+            case 'food': return 'bg-orange-500/20 text-orange-400'
+            case 'transport': return 'bg-blue-500/20 text-blue-400'
+            case 'coffee': return 'bg-amber-500/20 text-amber-400'
+            case 'shopping': return 'bg-fuchsia-500/20 text-fuchsia-400'
+            case 'entertainment': return 'bg-purple-500/20 text-purple-400'
+            default: return 'bg-slate-500/20 text-slate-400'
+        }
+    }
+
+    const totalAmount = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0)
 
     if (isLoading) {
-        return <div className="text-slate-400">Loading expenses...</div>
+        return (
+            <div className="space-y-2">
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="h-16 bg-slate-900/50 border border-slate-800 rounded-lg animate-pulse" />
+                ))}
+            </div>
+        )
     }
 
     if (error) {
@@ -50,50 +68,44 @@ export function RecentExpenses() {
         <div className="flex-1">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-light text-slate-200">Recent Expenses</h3>
-                <span className="text-2xl font-medium text-slate-400">₹{totalAmount.toFixed(2)}</span>
+                <span className="text-2xl font-medium text-slate-400">₹{totalAmount.toLocaleString()}</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-                {expenses.length === 0 ? (
-                    <div className="text-slate-500 text-center py-8 flex-1">
-                        No expenses recorded yet.
-                    </div>
-                ) : (
-                    expenses.slice(0, 2).map((expense, index) => {
+            {expenses.length === 0 ? (
+                <div className="text-slate-500 text-center py-8">
+                    No expenses recorded yet.
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {expenses.slice(0, 5).map((expense, index) => {
                         const IconComponent = getIcon(expense.category)
+                        const colorClass = getCategoryColor(expense.category)
                         return (
                             <motion.div
                                 key={expense.id}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3 + index * 0.1 }}
-                                className="flex-1 bg-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 flex items-center gap-4 hover:bg-slate-800/80 transition-colors"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="flex items-center gap-4 p-4 bg-slate-900/50 border border-slate-800 rounded-lg hover:border-slate-700 transition-colors"
                             >
-                                <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center">
-                                    <IconComponent size={20} />
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClass}`}>
+                                    <IconComponent size={18} />
                                 </div>
                                 <div className="flex-1">
-                                    <h4 className="text-sm font-medium text-slate-200">{expense.description}</h4>
-                                    <p className="text-xs text-slate-500">{expense.category}</p>
+                                    <h4 className="text-sm font-medium text-white">{expense.description || expense.category}</h4>
+                                    <p className="text-xs text-slate-500 capitalize">{expense.category}</p>
                                 </div>
                                 <div className="text-right">
-                                    <span className="block font-medium text-slate-200">₹{expense.amount}</span>
-                                    <span className="text-xs text-slate-500">{new Date(expense.date).toLocaleDateString()}</span>
+                                    <span className="block font-semibold text-white">₹{Number(expense.amount).toLocaleString()}</span>
+                                    <span className="text-xs text-slate-500">
+                                        {new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                                    </span>
                                 </div>
                             </motion.div>
                         )
-                    })
-                )}
-
-                {/* Add Button Placeholder */}
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-12 flex items-center justify-center rounded-2xl bg-slate-800/40 border border-slate-700/50 hover:bg-slate-700/50 transition-colors"
-                >
-                    <span className="text-2xl text-slate-400">+</span>
-                </motion.button>
-            </div>
+                    })}
+                </div>
+            )}
         </div>
     )
 }

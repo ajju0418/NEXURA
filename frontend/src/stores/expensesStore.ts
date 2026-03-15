@@ -5,16 +5,25 @@ interface Expense {
   id: string
   amount: number
   category: string
-  description: string
+  description?: string
   date: string
+  impact?: string
+  tags?: string
   createdAt: string
+}
+
+interface ExpenseSummary {
+  totalAmount: number
+  byCategory: Record<string, number>
 }
 
 interface ExpensesState {
   expenses: Expense[]
+  total: number
+  summary: ExpenseSummary | null
   isLoading: boolean
   error: string | null
-  fetchExpenses: () => Promise<void>
+  fetchExpenses: (params?: { startDate?: string; endDate?: string; category?: string }) => Promise<void>
   createExpense: (data: any) => Promise<void>
   updateExpense: (id: string, data: any) => Promise<void>
   deleteExpense: (id: string) => Promise<void>
@@ -23,14 +32,21 @@ interface ExpensesState {
 
 export const useExpensesStore = create<ExpensesState>((set, get) => ({
   expenses: [],
+  total: 0,
+  summary: null,
   isLoading: false,
   error: null,
 
-  fetchExpenses: async () => {
+  fetchExpenses: async (params?: { startDate?: string; endDate?: string; category?: string }) => {
     set({ isLoading: true, error: null })
     try {
-      const expenses = await apiService.getExpenses()
-      set({ expenses, isLoading: false })
+      const result = await apiService.getExpenses(params)
+      set({
+        expenses: result.expenses,
+        total: result.total,
+        summary: result.summary,
+        isLoading: false,
+      })
     } catch (error: any) {
       set({ isLoading: false, error: error.message })
     }
@@ -39,8 +55,9 @@ export const useExpensesStore = create<ExpensesState>((set, get) => ({
   createExpense: async (data: any) => {
     set({ error: null })
     try {
-      const newExpense = await apiService.createExpense(data)
-      set({ expenses: [...get().expenses, newExpense] })
+      const newExpense: any = await apiService.createExpense(data)
+      // Refresh to get updated summary
+      await get().fetchExpenses()
     } catch (error: any) {
       set({ error: error.message })
       throw error
@@ -50,7 +67,7 @@ export const useExpensesStore = create<ExpensesState>((set, get) => ({
   updateExpense: async (id: string, data: any) => {
     set({ error: null })
     try {
-      const updatedExpense = await apiService.updateExpense(id, data)
+      const updatedExpense: any = await apiService.updateExpense(id, data)
       set({
         expenses: get().expenses.map(expense =>
           expense.id === id ? updatedExpense : expense

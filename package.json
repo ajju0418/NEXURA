@@ -27,5 +27,14 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@nestjs/platform-express": "^11.1.16",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "jwa": "^2.0.1",
+    "jws": "^4.0.1",
+    "pause": "^0.1.0",
+    "uid": "^2.0.2"
   }
 }

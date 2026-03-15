@@ -20,4 +20,22 @@ export class UsersController {
     async updateProfile(@CurrentUser('id') userId: string, @Body() data: any) {
         return this.usersService.updateProfile(userId, data);
     }
+
+    @Get('settings')
+    @ApiOperation({ summary: 'Get user settings' })
+    async getSettings(@CurrentUser('id') userId: string) {
+        return this.usersService.getSettings(userId);
+    }
+
+    @Put('settings')
+    @ApiOperation({ summary: 'Update user settings' })
+    async updateSettings(@CurrentUser('id') userId: string, @Body() data: any) {
+        return this.usersService.updateSettings(userId, data);
+    }
+
+    @Get('dashboard')
+    @ApiOperation({ summary: 'Get dashboard stats' })
+    async getDashboardStats(@CurrentUser('id') userId: string) {
+        return this.usersService.getDashboardStats(userId);
+    }
 }

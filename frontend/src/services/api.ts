@@ -5,7 +5,7 @@ class ApiService {
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      credentials: 'include', // Important: Send cookies with requests
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -15,18 +15,13 @@ class ApiService {
     })
 
     if (!response.ok) {
-      // Handle 401 Unauthorized - token might be expired
       if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/refresh' && endpoint !== '/auth/signup') {
-        // Try to refresh token
         try {
           await this.refreshToken()
-          // Retry the original request
           return this.request(endpoint, options)
         } catch (refreshError) {
-          // Refresh failed, clear auth and redirect to login (only if not already on auth pages)
           if (typeof window !== 'undefined') {
             localStorage.removeItem('accessToken')
-            // Only redirect if not already on login or signup page
             const currentPath = window.location.pathname
             if (currentPath !== '/login' && currentPath !== '/signup') {
               window.location.href = '/login'
@@ -40,6 +35,11 @@ class ApiService {
       throw new Error(errorData.message || `API Error: ${response.statusText}`)
     }
 
+    // Handle 204 No Content
+    if (response.status === 204) {
+      return {} as T
+    }
+
     return response.json()
   }
 
@@ -50,7 +50,6 @@ class ApiService {
       body: JSON.stringify({ email, password }),
     })
 
-    // Store access token
     if (typeof window !== 'undefined' && response.accessToken) {
       localStorage.setItem('accessToken', response.accessToken)
     }
@@ -58,13 +57,12 @@ class ApiService {
     return response
   }
 
-  async signup(email: string, password: string, name: string) {
+  async signup(signupData: any) {
     const response: any = await this.request('/auth/signup', {
       method: 'POST',
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify(signupData),
     })
 
-    // Store access token
     if (typeof window !== 'undefined' && response.accessToken) {
       localStorage.setItem('accessToken', response.accessToken)
     }
@@ -77,7 +75,6 @@ class ApiService {
       method: 'POST',
     })
 
-    // Update access token
     if (typeof window !== 'undefined' && response.accessToken) {
       localStorage.setItem('accessToken', response.accessToken)
     }
@@ -90,7 +87,6 @@ class ApiService {
       method: 'POST',
     })
 
-    // Clear access token
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken')
     }
@@ -102,7 +98,11 @@ class ApiService {
 
   // Habits
   async getHabits() {
-    return this.request('/habits')
+    return this.request<any[]>('/habits')
+  }
+
+  async getHabit(id: string) {
+    return this.request<any>(`/habits/${id}`)
   }
 
   async createHabit(data: any) {
@@ -125,16 +125,26 @@ class ApiService {
     })
   }
 
-  async completeHabit(id: string) {
+  async completeHabit(id: string, data?: { notes?: string; mood?: string }) {
     return this.request(`/habits/${id}/complete`, {
       method: 'POST',
-      body: JSON.stringify({ date: new Date().toISOString().split('T')[0] }),
+      body: JSON.stringify(data || {}),
     })
   }
 
+  async getHabitCompletions(id: string, limit?: number) {
+    const query = limit ? `?limit=${limit}` : ''
+    return this.request<any[]>(`/habits/${id}/completions${query}`)
+  }
+
   // Goals
-  async getGoals() {
-    return this.request('/goals')
+  async getGoals(completed?: boolean) {
+    const query = completed !== undefined ? `?completed=${completed}` : ''
+    return this.request<any[]>(`/goals${query}`)
+  }
+
+  async getGoal(id: string) {
+    return this.request<any>(`/goals/${id}`)
   }
 
   async createGoal(data: any) {
@@ -158,8 +168,19 @@ class ApiService {
   }
 
   // Expenses
-  async getExpenses() {
-    return this.request('/expenses')
+  async getExpenses(params?: { startDate?: string; endDate?: string; category?: string; limit?: number; offset?: number }) {
+    const searchParams = new URLSearchParams()
+    if (params?.startDate) searchParams.set('startDate', params.startDate)
+    if (params?.endDate) searchParams.set('endDate', params.endDate)
+    if (params?.category) searchParams.set('category', params.category)
+    if (params?.limit) searchParams.set('limit', String(params.limit))
+    if (params?.offset) searchParams.set('offset', String(params.offset))
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : ''
+    return this.request<{ expenses: any[]; total: number; summary: any }>(`/expenses${query}`)
+  }
+
+  async getExpense(id: string) {
+    return this.request<any>(`/expenses/${id}`)
   }
 
   async createExpense(data: any) {
@@ -183,17 +204,18 @@ class ApiService {
   }
 
   async getExpenseSummary(period: string) {
-    return this.request(`/expenses/summary?period=${period}`)
+    return this.request<any>(`/expenses/summary?period=${period}`)
   }
 
   // Timeline
-  async getTimeline() {
-    return this.request('/analytics/timeline')
+  async getTimeline(date?: string) {
+    const query = date ? `?date=${date}` : ''
+    return this.request<any>(`/analytics/timeline${query}`)
   }
 
   // User
   async getProfile() {
-    return this.request('/users/profile')
+    return this.request<any>('/users/profile')
   }
 
   async updateProfile(data: any) {
@@ -201,6 +223,23 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify(data),
     })
+  }
+
+  // Settings
+  async getSettings() {
+    return this.request<any>('/users/settings')
+  }
+
+  async updateSettings(data: any) {
+    return this.request('/users/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  }
+
+  // Dashboard
+  async getDashboardStats() {
+    return this.request<any>('/users/dashboard')
   }
 }
 

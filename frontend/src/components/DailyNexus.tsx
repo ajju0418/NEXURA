@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Zap, Book, Moon, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Zap, Book, Moon, TrendingUp, CheckCircle2, AlertCircle, Brain, Droplets } from 'lucide-react'
 import { useHabitsStore } from '../stores/habitsStore'
 
 export function DailyNexus() {
     const { habits, isLoading, error, fetchHabits, completeHabit, clearError } = useHabitsStore()
-    const completedCount = habits.filter(h => h.isCompleted).length
+    const completedCount = habits.filter(h => h.isCompletedToday).length
 
     useEffect(() => {
         fetchHabits()
@@ -21,7 +21,13 @@ export function DailyNexus() {
     }
 
     if (isLoading) {
-        return <div className="text-slate-400">Loading habits...</div>
+        return (
+            <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="h-20 bg-slate-900/50 border border-slate-800 rounded-lg animate-pulse" />
+                ))}
+            </div>
+        )
     }
 
     if (error) {
@@ -42,11 +48,24 @@ export function DailyNexus() {
         )
     }
 
-    const getIcon = (name: string) => {
-        if (name.toLowerCase().includes('meditation')) return Zap
+    const getIcon = (name: string, iconStr?: string) => {
+        if (iconStr === 'brain') return Brain
+        if (iconStr === 'zap') return Zap
+        if (iconStr === 'book') return Book
+        if (iconStr === 'moon') return Moon
+        if (iconStr === 'droplets') return Droplets
+        // Fallback to name matching
+        if (name.toLowerCase().includes('meditation')) return Brain
+        if (name.toLowerCase().includes('exercise') || name.toLowerCase().includes('workout')) return Zap
         if (name.toLowerCase().includes('read')) return Book
         if (name.toLowerCase().includes('sleep')) return Moon
+        if (name.toLowerCase().includes('hydra') || name.toLowerCase().includes('water')) return Droplets
         return Zap
+    }
+
+    const getColor = (color?: string) => {
+        if (color) return color
+        return '#10B981'
     }
 
     return (
@@ -63,6 +82,16 @@ export function DailyNexus() {
                 </div>
             </div>
 
+            {/* Progress bar */}
+            {habits.length > 0 && (
+                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                        style={{ width: `${habits.length > 0 ? (completedCount / habits.length) * 100 : 0}%` }}
+                    />
+                </div>
+            )}
+
             {/* Habit List */}
             <div className="space-y-3">
                 {habits.length === 0 ? (
@@ -71,43 +100,48 @@ export function DailyNexus() {
                     </div>
                 ) : (
                     habits.map((habit) => {
-                        const IconComponent = getIcon(habit.name)
+                        const IconComponent = getIcon(habit.name, habit.icon)
+                        const color = getColor(habit.color)
+                        const completed = habit.isCompletedToday
                         return (
                             <div
                                 key={habit.id}
-                                className={`flex items-center gap-4 p-4 border transition-all cursor-pointer ${
-                                    habit.isCompleted
+                                className={`flex items-center gap-4 p-4 border transition-all cursor-pointer rounded-lg ${
+                                    completed
                                         ? 'border-emerald-500/30 bg-emerald-950/20'
                                         : 'border-slate-800 bg-slate-900/30 hover:border-slate-700'
                                 }`}
-                                onClick={() => !habit.isCompleted && handleCompleteHabit(habit.id)}
+                                onClick={() => !completed && handleCompleteHabit(habit.id)}
                             >
                                 {/* Icon */}
-                                <div className="w-12 h-12 bg-emerald-500 flex items-center justify-center rounded-lg">
+                                <div
+                                    className="w-12 h-12 flex items-center justify-center rounded-lg"
+                                    style={{ backgroundColor: completed ? '#10B981' : color + '33' }}
+                                >
                                     <IconComponent size={22} className="text-white" />
                                 </div>
 
                                 {/* Details */}
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h4 className={`text-base font-semibold ${habit.isCompleted ? 'text-emerald-400' : 'text-white'}`}>
+                                        <h4 className={`text-base font-semibold ${completed ? 'text-emerald-400' : 'text-white'}`}>
                                             {habit.name}
                                         </h4>
-                                        {habit.isCompleted && <CheckCircle2 size={16} className="text-emerald-400" />}
+                                        {completed && <CheckCircle2 size={16} className="text-emerald-400" />}
                                     </div>
                                     <div className="flex items-center gap-4 text-sm text-slate-500">
                                         <span>{habit.streak} day streak</span>
-                                        <span>• {habit.frequency}</span>
+                                        {habit.targetTime && <span>• {habit.targetTime}</span>}
                                     </div>
                                 </div>
 
                                 {/* Status */}
                                 <div className={`px-3 py-1.5 text-sm font-medium rounded ${
-                                    habit.isCompleted
+                                    completed
                                         ? 'bg-emerald-500/20 text-emerald-400'
                                         : 'bg-slate-800 text-slate-400'
                                 }`}>
-                                    {habit.isCompleted ? 'Done' : 'Pending'}
+                                    {completed ? 'Done' : 'Pending'}
                                 </div>
                             </div>
                         )

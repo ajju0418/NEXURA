@@ -15,7 +15,7 @@ build/
 dist/
 
 # Environment variables
-.env*.local
+# .env*.local
 
 # Debug
 npm-debug.log*

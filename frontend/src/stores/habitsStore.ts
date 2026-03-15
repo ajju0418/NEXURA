@@ -4,12 +4,18 @@ import { apiService } from '../services/api'
 interface Habit {
   id: string
   name: string
-  description?: string
-  frequency: string
+  icon?: string
+  color?: string
   streak: number
-  isCompleted: boolean
-  completedAt?: string
+  longestStreak: number
+  totalCompletions: number
+  targetTime?: string
+  reminderEnabled: boolean
+  isActive: boolean
+  lastCompletedAt?: string
   createdAt: string
+  // Computed on frontend
+  isCompletedToday?: boolean
 }
 
 interface HabitsState {
@@ -20,8 +26,19 @@ interface HabitsState {
   createHabit: (data: any) => Promise<void>
   updateHabit: (id: string, data: any) => Promise<void>
   deleteHabit: (id: string) => Promise<void>
-  completeHabit: (id: string) => Promise<void>
+  completeHabit: (id: string, data?: { notes?: string; mood?: string }) => Promise<void>
   clearError: () => void
+}
+
+const isCompletedToday = (lastCompletedAt?: string): boolean => {
+  if (!lastCompletedAt) return false
+  const completed = new Date(lastCompletedAt)
+  const today = new Date()
+  return (
+    completed.getFullYear() === today.getFullYear() &&
+    completed.getMonth() === today.getMonth() &&
+    completed.getDate() === today.getDate()
+  )
 }
 
 export const useHabitsStore = create<HabitsState>((set, get) => ({
@@ -32,8 +49,14 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
   fetchHabits: async () => {
     set({ isLoading: true, error: null })
     try {
-      const habits = await apiService.getHabits()
-      set({ habits, isLoading: false })
+      const habits: any[] = await apiService.getHabits()
+      set({
+        habits: habits.map(h => ({
+          ...h,
+          isCompletedToday: isCompletedToday(h.lastCompletedAt),
+        })),
+        isLoading: false,
+      })
     } catch (error: any) {
       set({ isLoading: false, error: error.message })
     }
@@ -42,8 +65,8 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
   createHabit: async (data: any) => {
     set({ error: null })
     try {
-      const newHabit = await apiService.createHabit(data)
-      set({ habits: [...get().habits, newHabit] })
+      const newHabit: any = await apiService.createHabit(data)
+      set({ habits: [...get().habits, { ...newHabit, isCompletedToday: false }] })
     } catch (error: any) {
       set({ error: error.message })
       throw error
@@ -53,10 +76,10 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
   updateHabit: async (id: string, data: any) => {
     set({ error: null })
     try {
-      const updatedHabit = await apiService.updateHabit(id, data)
+      const updatedHabit: any = await apiService.updateHabit(id, data)
       set({
         habits: get().habits.map(habit =>
-          habit.id === id ? updatedHabit : habit
+          habit.id === id ? { ...updatedHabit, isCompletedToday: isCompletedToday(updatedHabit.lastCompletedAt) } : habit
         )
       })
     } catch (error: any) {
@@ -76,11 +99,12 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
     }
   },
 
-  completeHabit: async (id: string) => {
+  completeHabit: async (id: string, data?: { notes?: string; mood?: string }) => {
     set({ error: null })
     try {
-      await apiService.completeHabit(id)
-      await get().fetchHabits() // Refresh to get updated streak
+      await apiService.completeHabit(id, data)
+      // Refresh all habits to get updated streaks
+      await get().fetchHabits()
     } catch (error: any) {
       set({ error: error.message })
       throw error

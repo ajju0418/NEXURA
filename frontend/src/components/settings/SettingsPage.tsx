@@ -9,6 +9,7 @@ import { DisplaySection } from './DisplaySection'
 import { DataSection } from './DataSection'
 import { dbService } from '@/services/db/indexedDB'
 import { settingsService } from '@/services/settingsService'
+import { apiService } from '@/services/api'
 import { UserSettings } from '@/types/settings'
 import { ArrowLeft, Settings as SettingsIcon, User, Brain, Bell, Palette, Database } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -26,12 +27,30 @@ export function SettingsPage() {
       try {
         // Initialize IndexedDB
         await dbService.init()
-        // Get settings
+        // Get local settings
         const userSettings = await settingsService.getSettings()
+
+        // Fetch profile from backend and merge
+        try {
+          const profile = await apiService.getProfile()
+          if (profile) {
+            userSettings.profile = {
+              ...userSettings.profile,
+              name: profile.name || userSettings.profile.name,
+              email: profile.email || userSettings.profile.email,
+              userId: profile.userId || userSettings.profile.userId,
+              timezone: profile.timezone || userSettings.profile.timezone,
+              currency: profile.currency || userSettings.profile.currency,
+              dateFormat: profile.dateFormat || userSettings.profile.dateFormat,
+            }
+          }
+        } catch (err) {
+          console.warn('Failed to fetch backend profile, using local settings:', err)
+        }
+
         setSettings(userSettings)
       } catch (error) {
         console.error('Error initializing settings:', error)
-        // Set default settings if initialization fails
         const defaultSettings = await import('@/types/settings').then(m => m.DEFAULT_SETTINGS)
         setSettings(defaultSettings)
       } finally {
@@ -46,6 +65,58 @@ export function SettingsPage() {
     try {
       const updated = await settingsService.updateSettings(updates)
       setSettings(updated)
+
+      // Sync profile changes to backend
+      if (updates.profile) {
+        try {
+          await apiService.updateProfile({
+            name: updates.profile.name,
+            timezone: updates.profile.timezone,
+            currency: updates.profile.currency,
+            dateFormat: updates.profile.dateFormat,
+          })
+        } catch (err) {
+          console.warn('Failed to sync profile to backend:', err)
+        }
+      }
+
+      // Sync AI/notification/display settings to backend
+      if (updates.ai || updates.notifications || updates.display || updates.data) {
+        try {
+          await apiService.updateSettings({
+            ...(updates.ai && {
+              assistantName: updates.ai.assistantName,
+              aiPersonality: updates.ai.personality,
+              insightFrequency: updates.ai.insightFrequency,
+              patternRecognition: updates.ai.patternRecognition,
+              predictiveAnalytics: updates.ai.predictiveAnalytics,
+              smartRecommendations: updates.ai.smartRecommendations,
+              spendingPredictions: updates.ai.spendingPredictions,
+              habitOptimization: updates.ai.habitOptimization,
+            }),
+            ...(updates.notifications && {
+              habitReminders: updates.notifications.habitReminders,
+              budgetAlerts: updates.notifications.budgetAlerts,
+              weeklySummary: updates.notifications.weeklySummary,
+              milestoneCelebrations: updates.notifications.milestoneCelebrations,
+              smartTiming: updates.notifications.smartTiming,
+            }),
+            ...(updates.display && {
+              theme: updates.display.theme,
+              defaultView: updates.display.defaultView,
+              animationSpeed: updates.display.animationSpeed,
+              hapticFeedback: updates.display.hapticFeedback,
+            }),
+            ...(updates.data && {
+              autoBackup: updates.data.autoBackup,
+              backupFrequency: updates.data.backupFrequency,
+              exportFormat: updates.data.exportFormat,
+            }),
+          })
+        } catch (err) {
+          console.warn('Failed to sync settings to backend:', err)
+        }
+      }
     } catch (error) {
       console.error('Error updating settings:', error)
     }
@@ -124,7 +195,7 @@ export function SettingsPage() {
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-8 pb-24">
         <div className="mb-8">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/dashboard')}
             className="flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors mb-6 group"
           >
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />

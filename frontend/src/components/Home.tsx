@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { HUDCard } from '@/components/HUDCard'
 import Image from 'next/image'
 import { Activity, TrendingUp, Zap, Wallet, Terminal } from 'lucide-react'
+import { useDashboardStore } from '@/stores/dashboardStore'
 
 // Dynamic imports for heavy components (code splitting)
 const PerformanceRadar = dynamic(
@@ -50,6 +51,7 @@ const RecentExpenses = dynamic(
 export function Home() {
   const [greeting, setGreeting] = useState('')
   const [currentDate, setCurrentDate] = useState('')
+  const { stats, fetchDashboard } = useDashboardStore()
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -59,7 +61,23 @@ export function Home() {
 
     const options: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: '2-digit' }
     setCurrentDate(new Date().toLocaleDateString('en-US', options).toUpperCase())
-  }, [])
+
+    fetchDashboard()
+  }, [fetchDashboard])
+
+  const userName = stats?.user?.name || 'User'
+  const userId = stats?.user?.userId || 'USER-01'
+  const healthScore = stats?.stats?.healthScore ?? '--'
+  const energyLevel = stats?.stats?.energyLevel ?? '--'
+  const budgetLeft = stats?.expenses?.budgetLeft ?? 0
+  const weekProgress = stats?.stats?.weekProgress ?? 0
+  const topScore = stats?.topScore
+  const lowScore = stats?.lowScore
+
+  const formatBudget = (amount: number) => {
+    if (amount >= 1000) return `₹${(amount / 1000).toFixed(1)}K`
+    return `₹${amount}`
+  }
 
   return (
     <div className="min-h-screen bg-[#050505] text-slate-200 font-sans selection:bg-cyan-500/30 overflow-x-hidden">
@@ -85,9 +103,9 @@ export function Home() {
             </div>
           </div>
           <h1 className="text-5xl md:text-6xl font-heading font-bold tracking-tight text-white mb-3">
-            {greeting}
+            {greeting}, {userName.split(' ')[0]}
           </h1>
-          <div className="text-lg font-mono text-slate-500 tracking-widest">{currentDate} // ID: ALEX-01</div>
+          <div className="text-lg font-mono text-slate-500 tracking-widest">{currentDate} // ID: {userId}</div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
           <div className="lg:col-span-5">
@@ -99,15 +117,19 @@ export function Home() {
                 </div>
                 <span className="text-base text-slate-500">Auto-refresh</span>
               </div>
-              <PerformanceRadar />
+              <PerformanceRadar data={stats?.performance} />
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <div className="bg-slate-900/50 p-5 border border-slate-800 rounded-lg">
                   <div className="text-base text-slate-500 mb-2">Top Score</div>
-                  <div className="text-2xl font-bold text-emerald-400">Finance • 91%</div>
+                  <div className="text-2xl font-bold text-emerald-400">
+                    {topScore ? `${topScore.name} • ${topScore.value}%` : 'Loading...'}
+                  </div>
                 </div>
                 <div className="bg-slate-900/50 p-5 border border-slate-800 rounded-lg">
                   <div className="text-base text-slate-500 mb-2">Needs Focus</div>
-                  <div className="text-2xl font-bold text-amber-400">Sleep • 65%</div>
+                  <div className="text-2xl font-bold text-amber-400">
+                    {lowScore ? `${lowScore.name} • ${lowScore.value}%` : 'Loading...'}
+                  </div>
                 </div>
               </div>
             </HUDCard>
@@ -123,7 +145,7 @@ export function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400 mb-1">Health Score</p>
-                <p className="text-4xl font-bold text-emerald-400">87%</p>
+                <p className="text-4xl font-bold text-emerald-400">{healthScore}%</p>
               </div>
               <Activity size={36} className="text-emerald-400 opacity-50" />
             </div>
@@ -132,7 +154,7 @@ export function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400 mb-1">Energy Level</p>
-                <p className="text-4xl font-bold text-cyan-400">73%</p>
+                <p className="text-4xl font-bold text-cyan-400">{energyLevel}%</p>
               </div>
               <Zap size={36} className="text-cyan-400 opacity-50" />
             </div>
@@ -141,7 +163,7 @@ export function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400 mb-1">Budget Left</p>
-                <p className="text-4xl font-bold text-fuchsia-400">₹5.5K</p>
+                <p className="text-4xl font-bold text-fuchsia-400">{formatBudget(budgetLeft)}</p>
               </div>
               <Wallet size={36} className="text-fuchsia-400 opacity-50" />
             </div>
@@ -150,7 +172,7 @@ export function Home() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400 mb-1">Week Progress</p>
-                <p className="text-4xl font-bold text-amber-400">60%</p>
+                <p className="text-4xl font-bold text-amber-400">{weekProgress}%</p>
               </div>
               <TrendingUp size={36} className="text-amber-400 opacity-50" />
             </div>
