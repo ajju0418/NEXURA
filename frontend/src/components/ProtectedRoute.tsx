@@ -6,17 +6,17 @@ import { useAuthStore } from '@/stores/authStore'
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { user, isLoading } = useAuthStore()
+  const { user, isLoading, isCheckingAuth } = useAuthStore()
 
   useEffect(() => {
-    // Only redirect if we're done loading and there's no user
-    if (!isLoading && !user) {
+    // Only redirect once auth check finished
+    if (!isCheckingAuth && !isLoading && !user) {
       router.push('/login')
     }
-  }, [user, isLoading, router])
+  }, [user, isLoading, isCheckingAuth, router])
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (isLoading || isCheckingAuth) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black flex items-center justify-center">
         <div className="text-center">
@@ -35,4 +35,3 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   // Render protected content
   return <>{children}</>
 }
-

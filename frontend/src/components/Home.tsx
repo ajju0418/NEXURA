@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { HUDCard } from '@/components/HUDCard'
 import Image from 'next/image'
-import { Activity, TrendingUp, Zap, Wallet, Terminal } from 'lucide-react'
+import { Activity, TrendingUp, Zap, Wallet, Terminal, LogOut, ChevronDown, User } from 'lucide-react'
 import { useDashboardStore } from '@/stores/dashboardStore'
+import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'next/navigation'
 
 // Dynamic imports for heavy components (code splitting)
 const PerformanceRadar = dynamic(
@@ -51,7 +53,26 @@ const RecentExpenses = dynamic(
 export function Home() {
   const [greeting, setGreeting] = useState('')
   const [currentDate, setCurrentDate] = useState('')
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const { stats, fetchDashboard } = useDashboardStore()
+  const { logout } = useAuthStore()
+  const router = useRouter()
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -87,19 +108,53 @@ export function Home() {
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_0%,#050505_100%)]" />
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-8 pb-24">
         <div className="mb-10 pt-4 pb-6 border-b border-slate-800">
-          <div className="flex items-center gap-3 mb-4">
-            <Image
-              src="/NEXURA_LOGO.png"
-              alt="NEXURA"
-              width={160}
-              height={55}
-              className="object-contain"
-            />
-            <span className="text-base font-mono text-cyan-500 tracking-[0.3em] font-bold uppercase">SYSTEM.ONLINE</span>
-            <div className="flex gap-1 ml-2">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <div className="w-2 h-2 bg-emerald-500/30 rounded-full" />
-              <div className="w-2 h-2 bg-emerald-500/30 rounded-full" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/NEXURA_LOGO.png"
+                alt="NEXURA"
+                width={160}
+                height={55}
+                className="object-contain"
+              />
+              <span className="text-base font-mono text-cyan-500 tracking-[0.3em] font-bold uppercase">SYSTEM.ONLINE</span>
+              <div className="flex gap-1 ml-2">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-emerald-500/30 rounded-full" />
+                <div className="w-2 h-2 bg-emerald-500/30 rounded-full" />
+              </div>
+            </div>
+
+            {/* User Menu */}
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setShowUserMenu((v) => !v)}
+                className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 hover:border-cyan-500/50 rounded-xl transition-all group"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm text-slate-300 font-medium hidden sm:block">{userName.split(' ')[0]}</span>
+                <ChevronDown size={14} className={`text-slate-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showUserMenu && (
+                <div className="absolute right-0 top-full mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-slate-800">
+                    <p className="text-sm font-semibold text-white truncate">{userName}</p>
+                    <p className="text-xs text-slate-500 font-mono truncate">ID: {userId}</p>
+                  </div>
+                  <div className="p-1">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors group"
+                    >
+                      <LogOut size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+                      <span className="font-medium">Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <h1 className="text-5xl md:text-6xl font-heading font-bold tracking-tight text-white mb-3">

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,238 +8,186 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(uuid())
-  email           String    @unique
-  passwordHash    String
-  name            String
-  age             Int
-  userId          String    @unique // Display ID like "ALEX-01"
-  avatar          String?
-  timezone        String    @default("UTC")
-  currency        String    @default("INR")
-  dateFormat      String    @default("DD/MM/YYYY")
-  
-  emailVerified   Boolean   @default(false)
-  isActive        Boolean   @default(true)
-  isDeleted       Boolean   @default(false)
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  lastLoginAt     DateTime?
-  deletedAt       DateTime?
-  
-  // Relations
-  authSessions    AuthSession[]
-  settings        UserSettings?
-  onboarding      OnboardingProfile?
-  habits          Habit[]
+  id               String             @id @default(uuid())
+  email            String             @unique
+  passwordHash     String
+  name             String
+  age              Int
+  userId           String             @unique
+  avatar           String?
+  timezone         String             @default("UTC")
+  currency         String             @default("INR")
+  dateFormat       String             @default("DD/MM/YYYY")
+  emailVerified    Boolean            @default(false)
+  isActive         Boolean            @default(true)
+  isDeleted        Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  lastLoginAt      DateTime?
+  deletedAt        DateTime?
+  authSessions     AuthSession[]
+  expenses         Expense[]
+  goals            Goal[]
   habitCompletions HabitCompletion[]
-  goals           Goal[]
-  expenses        Expense[]
-  timelineEvents  TimelineEvent[]
-  
+  habits           Habit[]
+  onboarding       OnboardingProfile?
+  timelineEvents   TimelineEvent[]
+  settings         UserSettings?
+
   @@index([email])
   @@index([userId])
   @@map("users")
 }
 
 model AuthSession {
-  id              String    @id @default(uuid())
-  userId          String
-  refreshToken    String    @unique
-  deviceInfo      String?   // JSON as string for SQLite
-  
-  expiresAt       DateTime
-  createdAt       DateTime  @default(now())
-  lastUsedAt      DateTime  @default(now())
-  isRevoked       Boolean   @default(false)
-  
-  // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique
+  deviceInfo   String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
+  isRevoked    Boolean  @default(false)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([refreshToken])
   @@map("auth_sessions")
 }
 
 model UserSettings {
-  id                      String    @id @default(uuid())
-  userId                  String    @unique
-  
-  // AI Configuration
-  assistantName           String    @default("NEXURA AI")
-  aiPersonality           String    @default("balanced") // professional, friendly, motivational, balanced
-  insightFrequency        String    @default("daily") // daily, weekly, on-demand
-  patternRecognition      Boolean   @default(true)
-  predictiveAnalytics     Boolean   @default(true)
-  smartRecommendations    Boolean   @default(true)
-  spendingPredictions     Boolean   @default(true)
-  habitOptimization       Boolean   @default(true)
-  
-  // Notifications
-  habitReminders          Boolean   @default(true)
-  budgetAlerts            Boolean   @default(true)
-  weeklySummary           Boolean   @default(true)
-  milestoneCelebrations   Boolean   @default(true)
-  smartTiming             Boolean   @default(true)
-  
-  // Display
-  theme                   String    @default("dark") // dark, light, auto
-  defaultView             String    @default("home") // home, log, patterns, goals
-  animationSpeed          String    @default("normal") // fast, normal, slow
-  hapticFeedback          Boolean   @default(false)
-  
-  // Data & Privacy
-  autoBackup              Boolean   @default(true)
-  backupFrequency         String    @default("weekly") // daily, weekly, monthly
-  exportFormat            String    @default("json") // json, csv
-  
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-  
-  // Relations
-  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  assistantName         String   @default("NEXURA AI")
+  aiPersonality         String   @default("balanced")
+  insightFrequency      String   @default("daily")
+  patternRecognition    Boolean  @default(true)
+  predictiveAnalytics   Boolean  @default(true)
+  smartRecommendations  Boolean  @default(true)
+  spendingPredictions   Boolean  @default(true)
+  habitOptimization     Boolean  @default(true)
+  habitReminders        Boolean  @default(true)
+  budgetAlerts          Boolean  @default(true)
+  weeklySummary         Boolean  @default(true)
+  milestoneCelebrations Boolean  @default(true)
+  smartTiming           Boolean  @default(true)
+  theme                 String   @default("dark")
+  defaultView           String   @default("home")
+  animationSpeed        String   @default("normal")
+  hapticFeedback        Boolean  @default(false)
+  autoBackup            Boolean  @default(true)
+  backupFrequency       String   @default("weekly")
+  exportFormat          String   @default("json")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("user_settings")
 }
 
 model OnboardingProfile {
-  id                    String    @id @default(uuid())
-  userId                String    @unique
-  
-  // Life Area Scores (1-10)
-  wellnessScore         Int
-  productivityScore     Int
-  financeScore          Int
-  relationshipsScore    Int
-  learningScore         Int
-  sleepScore            Int
-  
-  // Goals & Habits (JSON as strings for SQLite)
-  primaryGoals          String    // JSON array as string
-  currentHabits         String    // JSON array as string
-  
-  // Preferences
-  monthlyBudget         Float
-  wakeTime              String    // HH:MM format
-  bedTime               String    // HH:MM format
-  
-  createdAt             DateTime  @default(now())
-  
-  // Relations
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  wellnessScore      Int
+  productivityScore  Int
+  financeScore       Int
+  relationshipsScore Int
+  learningScore      Int
+  sleepScore         Int
+  primaryGoals       String
+  currentHabits      String
+  monthlyBudget      Float
+  wakeTime           String
+  bedTime            String
+  createdAt          DateTime @default(now())
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("onboarding_profiles")
 }
 
-// ============================================
-// PHASE 2: Business Entities
-// ============================================
-
 model Habit {
-  id                  String    @id @default(uuid())
-  userId              String
-  name                String
-  icon                String?
-  color               String?
-  
-  streak              Int       @default(0)
-  longestStreak       Int       @default(0)
-  totalCompletions    Int       @default(0)
-  
-  targetTime          String?   // HH:MM format
-  reminderEnabled     Boolean   @default(false)
-  
-  isActive            Boolean   @default(true)
-  isDeleted           Boolean   @default(false)
-  
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  lastCompletedAt     DateTime?
-  deletedAt           DateTime?
-  
-  // Relations
-  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  completions         HabitCompletion[]
-  timelineEvents      TimelineEvent[]
-  
+  id               String            @id @default(uuid())
+  userId           String
+  name             String
+  icon             String?
+  color            String?
+  streak           Int               @default(0)
+  longestStreak    Int               @default(0)
+  totalCompletions Int               @default(0)
+  targetTime       String?
+  reminderEnabled  Boolean           @default(false)
+  isActive         Boolean           @default(true)
+  isDeleted        Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  lastCompletedAt  DateTime?
+  deletedAt        DateTime?
+  completions      HabitCompletion[]
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timelineEvents   TimelineEvent[]
+
   @@index([userId])
   @@index([userId, isDeleted])
   @@map("habits")
 }
 
 model HabitCompletion {
-  id              String    @id @default(uuid())
-  habitId         String
-  userId          String
-  
-  completedAt     DateTime  @default(now())
-  notes           String?
-  mood            String?   // great, good, okay, bad
-  
-  // Relations
-  habit           Habit     @relation(fields: [habitId], references: [id], onDelete: Cascade)
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id          String   @id @default(uuid())
+  habitId     String
+  userId      String
+  completedAt DateTime @default(now())
+  notes       String?
+  mood        String?
+  habit       Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([habitId, completedAt])
   @@index([userId, completedAt])
   @@map("habit_completions")
 }
 
 model Goal {
-  id              String    @id @default(uuid())
-  userId          String
-  name            String
-  type            String    // habit, budget, milestone
-  
-  target          Float
-  current         Float     @default(0)
-  unit            String
-  
-  icon            String?
-  color           String?
-  deadline        String?
-  deadlineDate    DateTime?
-  
-  isCompleted     Boolean   @default(false)
-  isDeleted       Boolean   @default(false)
-  
-  completedAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  deletedAt       DateTime?
-  
-  // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  timelineEvents  TimelineEvent[]
-  
+  id             String          @id @default(uuid())
+  userId         String
+  name           String
+  type           String
+  target         Float
+  current        Float           @default(0)
+  unit           String
+  icon           String?
+  color          String?
+  deadline       String?
+  deadlineDate   DateTime?
+  isCompleted    Boolean         @default(false)
+  isDeleted      Boolean         @default(false)
+  completedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timelineEvents TimelineEvent[]
+
   @@index([userId])
   @@index([userId, isDeleted])
   @@map("goals")
 }
 
 model Expense {
-  id              String    @id @default(uuid())
-  userId          String
-  
-  amount          Float
-  category        String    // food, transport, shopping, entertainment, coffee, other
-  description     String?
-  
-  date            DateTime  @default(now())
-  impact          String?   // positive, neutral, negative
-  tags            String?   // JSON array as string for SQLite
-  
-  isDeleted       Boolean   @default(false)
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  deletedAt       DateTime?
-  
-  // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  timelineEvents  TimelineEvent[]
-  
+  id             String          @id @default(uuid())
+  userId         String
+  amount         Float
+  category       String
+  description    String?
+  date           DateTime        @default(now())
+  impact         String?
+  tags           String?
+  isDeleted      Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timelineEvents TimelineEvent[]
+
   @@index([userId, date])
   @@index([userId, category])
   @@index([userId, isDeleted])
@@ -250,30 +195,26 @@ model Expense {
 }
 
 model TimelineEvent {
-  id              String    @id @default(uuid())
-  userId          String
-  
-  eventType       String    // HABIT, EXPENSE, GOAL, CUSTOM
-  eventName       String
-  startTime       DateTime  @default(now())
-  duration        Int?      // minutes
-  
-  // Polymorphic relations
-  relatedHabitId  String?
+  id               String   @id @default(uuid())
+  userId           String
+  eventType        String
+  eventName        String
+  startTime        DateTime @default(now())
+  duration         Int?
+  relatedHabitId   String?
   relatedExpenseId String?
-  relatedGoalId   String?
-  
-  metadata        String?   // JSON as string for SQLite
-  
-  createdAt       DateTime  @default(now())
-  
-  // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  habit           Habit?    @relation(fields: [relatedHabitId], references: [id], onDelete: SetNull)
-  expense         Expense?  @relation(fields: [relatedExpenseId], references: [id], onDelete: SetNull)
-  goal            Goal?     @relation(fields: [relatedGoalId], references: [id], onDelete: SetNull)
-  
+  relatedGoalId    String?
+  metadata         String?
+  createdAt        DateTime @default(now())
+  expense          Expense? @relation(fields: [relatedExpenseId], references: [id])
+  goal             Goal?    @relation(fields: [relatedGoalId], references: [id])
+  habit            Habit?   @relation(fields: [relatedHabitId], references: [id])
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, startTime])
   @@index([eventType])
+  @@index([relatedExpenseId], map: "timeline_events_relatedExpenseId_fkey")
+  @@index([relatedGoalId], map: "timeline_events_relatedGoalId_fkey")
+  @@index([relatedHabitId], map: "timeline_events_relatedHabitId_fkey")
   @@map("timeline_events")
 }

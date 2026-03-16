@@ -1,10 +1,23 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'
+const IS_DEV = process.env.NODE_ENV === 'development'
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const fullUrl = `${API_BASE_URL}${endpoint}`
+
+    // Dev logger — shows exactly what leaves the frontend
+    if (IS_DEV) {
+      console.groupCollapsed(`[API] ${options.method || 'GET'} ${endpoint}`)
+      console.log('URL:', fullUrl)
+      if (options.body) {
+        try { console.log('Body:', JSON.parse(options.body as string)) } catch { console.log('Body (raw):', options.body) }
+      }
+      console.groupEnd()
+    }
+
+    const response = await fetch(fullUrl, {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
@@ -15,6 +28,8 @@ class ApiService {
     })
 
     if (!response.ok) {
+      if (IS_DEV) console.warn(`[API] ❌ ${response.status} ${endpoint}`)
+
       if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/refresh' && endpoint !== '/auth/signup') {
         try {
           await this.refreshToken()
@@ -37,9 +52,11 @@ class ApiService {
 
     // Handle 204 No Content
     if (response.status === 204) {
+      if (IS_DEV) console.log(`[API] ✅ ${response.status} ${endpoint}`)
       return {} as T
     }
 
+    if (IS_DEV) console.log(`[API] ✅ ${response.status} ${endpoint}`)
     return response.json()
   }
 

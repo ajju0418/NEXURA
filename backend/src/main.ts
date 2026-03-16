@@ -26,13 +26,7 @@ async function bootstrap() {
     app.useGlobalFilters(new AllExceptionsFilter());
 
     // Global validation pipe
-    app.useGlobalPipes(
-        new ValidationPipe({
-            whitelist: true,
-            forbidNonWhitelisted: true,
-            transform: true,
-        }),
-    );
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     // Swagger documentation
     const config = new DocumentBuilder()

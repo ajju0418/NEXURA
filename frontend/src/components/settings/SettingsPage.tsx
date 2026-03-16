@@ -11,8 +11,9 @@ import { dbService } from '@/services/db/indexedDB'
 import { settingsService } from '@/services/settingsService'
 import { apiService } from '@/services/api'
 import { UserSettings } from '@/types/settings'
-import { ArrowLeft, Settings as SettingsIcon, User, Brain, Bell, Palette, Database } from 'lucide-react'
+import { ArrowLeft, Settings as SettingsIcon, User, Brain, Bell, Palette, Database, LogOut } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuthStore } from '@/stores/authStore'
 
 type SettingsSection = 'profile' | 'ai' | 'notifications' | 'display' | 'data'
 
@@ -21,6 +22,12 @@ export function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState<SettingsSection>('profile')
+  const { logout } = useAuthStore()
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
 
   useEffect(() => {
     async function init() {
@@ -241,6 +248,17 @@ export function SettingsPage() {
                   )
                 })}
               </nav>
+
+              {/* Logout */}
+              <div className="mt-2 pt-2 border-t border-slate-800">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all group"
+                >
+                  <LogOut size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+                  <span className="font-medium">Sign Out</span>
+                </button>
+              </div>
             </div>
           </div>
 

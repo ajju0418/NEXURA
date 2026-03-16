@@ -74,7 +74,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
-  const { signup } = useAuthStore()
+  const { signup, checkAuth } = useAuthStore()
 
   const updateProfile = (updates: Partial<UserProfile>) => {
     setProfile(prev => ({ ...prev, ...updates }))
@@ -96,7 +96,6 @@ export default function SignupPage() {
     setLoading(true)
     setError('')
     try {
-      // Call the backend signup API with the correct format
       await signup({
         name: profile.name,
         email: profile.email,
@@ -109,13 +108,14 @@ export default function SignupPage() {
           budget: profile.budget,
           wakeTime: profile.wakeTime,
           bedTime: profile.bedTime,
+          aiPersonality: profile.aiPersonality,
         }
       })
 
-      // On success, redirect to dashboard
+      // Ensure store has the authenticated user before navigating
+      await checkAuth()
       router.push('/dashboard')
     } catch (err: any) {
-      setLoading(false)
       const errorMessage = err.message || 'Failed to create account'
       if (errorMessage.toLowerCase().includes('already exists') || errorMessage.toLowerCase().includes('duplicate')) {
         setError('EMAIL ALREADY EXISTS - TRY LOGGING IN')
@@ -124,6 +124,8 @@ export default function SignupPage() {
       } else {
         setError('REGISTRATION FAILED - ' + errorMessage.toUpperCase())
       }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -193,8 +195,11 @@ export default function SignupPage() {
                 <label className="text-sm text-slate-400 mb-2 block">Age</label>
                 <input
                   type="number"
-                  value={profile.age}
-                  onChange={(e) => updateProfile({ age: parseInt(e.target.value) })}
+                  value={Number.isFinite(profile.age) ? profile.age : ''}
+                  onChange={(e) => {
+                    const next = e.target.value === '' ? 18 : parseInt(e.target.value, 10)
+                    updateProfile({ age: Number.isFinite(next) ? next : 18 })
+                  }}
                   className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-cyan-500 focus:outline-none"
                   min="18" max="100"
                 />
@@ -323,8 +328,11 @@ export default function SignupPage() {
                 <label className="text-sm text-slate-400 mb-3 block">Monthly Budget (₹)</label>
                 <input
                   type="number"
-                  value={profile.budget}
-                  onChange={(e) => updateProfile({ budget: parseInt(e.target.value) })}
+                  value={Number.isFinite(profile.budget) ? profile.budget : ''}
+                  onChange={(e) => {
+                    const next = e.target.value === '' ? 0 : Number(e.target.value)
+                    updateProfile({ budget: Number.isFinite(next) ? next : 0 })
+                  }}
                   className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-cyan-500 focus:outline-none"
                   placeholder="15000"
                 />
@@ -467,6 +475,15 @@ export default function SignupPage() {
           </div>
 
           {/* Main Content */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-950/50 border border-red-500/30 rounded-xl text-red-400 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                {error}
+              </div>
+            </div>
+          )}
+
           <HUDCard className="p-6 md:p-8 min-h-[500px]">
             <div
               key={currentStep}
